@@ -118,11 +118,13 @@ def train(nodeState, ServiceGraph, ServiceResource, ServiceContainernum, graph):
                 while not env.if_valid_action(action):
                     action_index = agent.sample(env.State)
                     action = env.index_to_act(action_index)
+            # step 会更新 env.State，先保留动作执行前的状态。
+            state = env.State.copy()
             next_state, reward, done = env.step(action)
             if (not done) and (env.if_invalid_state(agent)):
                 reward = 0
             # 存储经验并更新智能体
-            agent.store_transition(env.State, action_index, reward, next_state, done)
+            agent.store_transition(state, action_index, reward, next_state, done)
             loss = agent.learn()
             with open("reward.txt", "a") as f:
                 f.write("%d,%.3f \n" % (episode, reward))

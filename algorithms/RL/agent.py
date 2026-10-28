@@ -139,10 +139,10 @@ class Agent:
         q_values = self.q_network(state_batch)
         q_value_pred = q_values.gather(1, action_batch.unsqueeze(1)).squeeze(1)
 
-        # 计算 Q 值目标
-        q_values_next = self.q_network(next_state_batch)
-        #q_values_next = self.target_network(next_state_batch)
-        q_value_target = reward_batch + (1 - done_batch) * self.gamma * q_values_next.max(1)[0]
+        # 目标网络只提供学习目标，不参与反向传播。
+        with torch.no_grad():
+            q_values_next = self.target_network(next_state_batch)
+            q_value_target = reward_batch + (1 - done_batch) * self.gamma * q_values_next.max(1)[0]
 
         # 计算损失函数
         loss = nn.MSELoss()(q_value_pred, q_value_target)
